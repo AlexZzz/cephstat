@@ -11,7 +11,7 @@ schema=""
 previous_counters={}
 actual_vals={}
 
-default_vals=['op_r','op_r_out_bytes','op_w','op_w_in_bytes']
+default_vals=['op_r','op_r_out_bytes','op_w','op_w_in_bytes','op_r_latency','op_w_latency']
 
 def get_osd_asok(NUM):
         import glob
@@ -43,11 +43,20 @@ def parse_option(option,dump,osd_num):
 				actual_vals[key] = value - previous_counters[key]
 			previous_counters[key] = value
 			continue
-
-                avg = get_avg(value)
-       	        summ = get_sum(value)
-               	if avg is not None and summ is not None:
-			continue
+		if key_type == "5":
+			avg = get_avg(value)
+			summ = get_sum(value)
+			latency_vals = {'avg' : avg, 'summ' : summ}
+			if key in previous_counters.keys():
+				previous_avg = previous_counters[key]['avg']
+				previous_summ = previous_counters[key]['summ']
+				last_summ = summ - previous_summ
+				if last_summ != 0:
+					actual_vals[key] = last_summ / (avg - previous_avg)
+				else:
+					actual_vals[key] = 0
+			previous_counters[key] = latency_vals
+				
 	
 def parse_schema(option,dump,osd_num):
 	global schema
@@ -70,11 +79,11 @@ def read_asok(NUM):
 			if (line == 1 or line % 10 == 0):
 				for k,v in actual_vals.items():
 					if k in default_vals:
-						print (k,end='\t')
+						print (k,end='\t\t')
 				print ('\n')
 			for k,v in actual_vals.items():
 				if k in default_vals:
-					print (v,end='\t')
+					print (v,end='\t\t')
 			print ('\n')
 			line+=1
 			sleep(1)
