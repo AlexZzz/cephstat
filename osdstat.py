@@ -76,15 +76,17 @@ def read_asok(NUM):
 		while(1):
         		asok_perf_dump = json.loads(ceph_daemon.admin_socket(asok,['perf','dump'],'format'))
 			parse_option('osd',asok_perf_dump,osd_num)
+			out_string = ""
 			if (line == 1 or line % 10 == 0):
+				print ('\n')
 				for k,v in actual_vals.items():
 					if k in default_vals:
-						print (k,end='\t\t')
-				print ('\n')
+						out_string += k + '\t'
+				out_string += '\n'
 			for k,v in actual_vals.items():
 				if k in default_vals:
-					print (v,end='\t\t')
-			print ('\n')
+					out_string += str(v) + '\t'
+			print (out_string)
 			line+=1
 			sleep(1)
 
