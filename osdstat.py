@@ -6,12 +6,21 @@ import json
 from StringIO import StringIO
 from os import listdir
 from time import sleep
+import argparse
 
 schema=""
 previous_counters={}
 actual_vals={}
 
 default_vals=['op_r','op_r_out_bytes','op_w','op_w_in_bytes','op_r_latency','op_w_latency']
+
+def parse_args():
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("osd_num",help='Osd number')
+#    argparser.add_argument("-o","--container", default='bench', action='store',type=str,
+#        help="Container to create/read objects")
+    return argparser.parse_args()
+
 
 def get_osd_asok(NUM):
         import glob
@@ -76,17 +85,16 @@ def read_asok(NUM):
 		while(1):
         		asok_perf_dump = json.loads(ceph_daemon.admin_socket(asok,['perf','dump'],'format'))
 			parse_option('osd',asok_perf_dump,osd_num)
-			out_string = ""
-			if (line == 1 or line % 10 == 0):
-				print ('\n')
-				for k,v in actual_vals.items():
-					if k in default_vals:
-						out_string += k + '\t'
-				out_string += '\n'
+			head_string = ""
+			metrics_string = ""
 			for k,v in actual_vals.items():
 				if k in default_vals:
-					out_string += str(v) + '\t'
-			print (out_string)
+					if (line == 1 or line % 10 == 0):
+						head_string += k + '\t'
+					metrics_string += str(v) + '\t'
+			if head_string != "":
+				print ("\n"+head_string)
+			print (metrics_string)
 			line+=1
 			sleep(1)
 
@@ -97,7 +105,8 @@ def read_asok(NUM):
 	return 0
 
 def main():
-  read_asok("16")
+  args = parse_args()
+  read_asok(args.osd_num)
 
 if __name__ == "__main__":
   main()
