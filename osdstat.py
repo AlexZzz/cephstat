@@ -25,6 +25,10 @@ def parse_args():
     argparser.add_argument("osd_num",help='Osd number')
     argparser.add_argument("-i","--interval", default='1', action='store',type=float,
         help="Amount of time between reports (default = 1 second)")
+    argparser.add_argument("-m","--metric",nargs="+",required=False,
+        help="Metrics to parse. -l for more info")
+    argparser.add_argument("-l","--list",required=False,
+        help="List available metrics")
     return argparser.parse_args()
 
 
@@ -101,7 +105,9 @@ def read_asok(NUM):
 
 def main():
   args = parse_args()
-  global interval
+  global interval,default_vals
+  if args.metric :
+    default_vals=args.metric
   interval = args.interval
   read_asok(args.osd_num)
 
