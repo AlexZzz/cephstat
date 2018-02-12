@@ -8,11 +8,16 @@ from os import listdir
 from time import sleep
 import argparse
 
+# perf dump schema
 schema=""
+# saved counters to calc diff
 previous_counters={}
+# values to print
 actual_vals={}
+# update/show interval
 interval='1.0'
 
+# values to print
 default_vals=['op_r','op_r_out_bytes','op_w','op_w_in_bytes','op_r_latency','op_w_latency']
 
 def parse_args():
@@ -44,11 +49,13 @@ def parse_option(option,dump,osd_num):
         for key,value in res.items():
 		key_schema = json.dumps(schema[key])
 		key_type = json.dumps(json.loads(key_schema)["type"])
+                # type = 10 - bytes-based metric
 		if key_type == "10":
 			if key in previous_counters.keys():
 				actual_vals[key] = value - previous_counters[key]
 			previous_counters[key] = value
 			continue
+                # type = 5 - latency metric
 		if key_type == "5":
 			avg = get_avg(value)
 			summ = get_sum(value)
@@ -67,8 +74,6 @@ def parse_option(option,dump,osd_num):
 def parse_schema(option,dump,osd_num):
 	global schema
 	schema = json.loads(json.dumps(dump[option]))
-#	for key,value in res.items():
-#		print key,value
 		
 
 def read_asok(NUM):
