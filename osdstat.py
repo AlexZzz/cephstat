@@ -27,7 +27,7 @@ def parse_args():
         help="Amount of time between reports (default = 1 second)")
     argparser.add_argument("-m","--metric",nargs="+",required=False,
         help="Metrics to parse. -l for more info")
-    argparser.add_argument("-l","--list",required=False,
+    argparser.add_argument("-l","--list-metrics",action='store_true',required=False,
         help="List available metrics")
     return argparser.parse_args()
 
@@ -75,17 +75,25 @@ def parse_option(option,dump,osd_num):
 			previous_counters[key] = latency_vals
 				
 	
-def parse_schema(option,dump,osd_num):
+def parse_schema(option,dump):
 	global schema
 	schema = json.loads(json.dumps(dump[option]))
+
+def list_metrics(osd_num):
+    global schema
+    for asok in get_osd_asok(osd_num):
+        asok_perf_schema = json.loads(ceph_daemon.admin_socket(asok,['perf','schema'],'format'))
+        parse_schema('osd',asok_perf_schema)
+        for k,v in schema.items():
+            print (k)
 		
 
-def read_asok(NUM):
+def read_asok(osd_num):
 	global interval
-	for asok in get_osd_asok(NUM):
+	for asok in get_osd_asok(osd_num):
 		asok_perf_schema = json.loads(ceph_daemon.admin_socket(asok,['perf','schema'],'format'))
-		osd_num = asok.rsplit('/',1)[1].split('.')[1]
-		parse_schema('osd',asok_perf_schema,osd_num)
+#		osd_num = asok.rsplit('/',1)[1].split('.')[1]
+		parse_schema('osd',asok_perf_schema)
 		line = 0
 		while(1):
         		asok_perf_dump = json.loads(ceph_daemon.admin_socket(asok,['perf','dump'],'format'))
@@ -106,8 +114,14 @@ def read_asok(NUM):
 def main():
   args = parse_args()
   global interval,default_vals
+
   if args.metric :
     default_vals=args.metric
+
+  if args.list_metrics :
+    list_metrics(args.osd_num)
+    return
+
   interval = args.interval
   read_asok(args.osd_num)
 
