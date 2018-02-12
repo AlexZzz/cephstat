@@ -69,7 +69,7 @@ def parse_option(option,dump,osd_num):
 				previous_summ = previous_counters[key]['summ']
 				last_summ = summ - previous_summ
 				if last_summ != 0:
-					actual_vals[key] = last_summ / (avg - previous_avg)
+					actual_vals[key] = '%.5f'%(last_summ / (avg - previous_avg))
 				else:
 					actual_vals[key] = 0
 			previous_counters[key] = latency_vals
