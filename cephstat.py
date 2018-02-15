@@ -92,6 +92,9 @@ def parse_option(option,dump,daemon_num):
 				else:
 					actual_vals[key] = 0
 			previous_counters[key] = latency_vals
+		# type = 2 - just integer
+		if key_type == "2":
+			actual_vals[key] = value
 				
 	
 def parse_schema(option,dump):
