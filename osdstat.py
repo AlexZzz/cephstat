@@ -38,7 +38,7 @@ def parse_args():
     argparser.add_argument("-l","--list-metrics",action='store_true',required=False,
         help="List available metrics")
     argparser.add_argument("-d","--list-daemons",action='store_true',required=False,
-        help="List local available(started) daemons")
+        help="List local available (running) daemons")
     argparser.add_argument("-p","--asok-path",nargs="+",default=asok_path,required=False,
         help="Set path to admin socket\
 		default: "+asok_path)
