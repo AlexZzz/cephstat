@@ -22,7 +22,7 @@ interval='1.0'
 default_vals=['op_r','op_r_out_bytes','op_w','op_w_in_bytes','op_r_latency','op_w_latency']
 
 # available ceph daemons
-daemons_available=['osd','mon','mgr']
+daemons_available=['osd','mon']
 
 # path to admin sockets
 asok_path='/var/run/ceph'
