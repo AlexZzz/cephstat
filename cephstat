@@ -63,7 +63,11 @@ def get_sum(param):
 def list_daemons():
 	global asok_path
 	for i in glob.glob(asok_path+'/ceph-*.*.asok'):
-		print(re.search(r'ceph-(.*).asok',i).group(1))
+		d=re.search(r'ceph-(.*).asok',i).group(1)
+                if d.rsplit('.')[0] not in daemons_available:
+                    print(d + "(unavailable)")
+                    continue
+                print (d)
         return
 
 def parse_option(option,dump,daemon_num):
