@@ -7,6 +7,7 @@ from StringIO import StringIO
 from os import listdir
 from time import sleep
 import argparse
+import glob,re
 
 # perf dump schema
 schema=""
@@ -23,23 +24,31 @@ default_vals=['op_r','op_r_out_bytes','op_w','op_w_in_bytes','op_r_latency','op_
 # available ceph daemons
 daemons_available=['osd','mon','mgr']
 
+# path to admin sockets
+asok_path='/var/run/ceph'
+
 def parse_args():
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("daemon",help='Daemon name.num to get stats from (Ex.: osd.0)\
-            Available daemons: '+str(daemons_available))
+    argparser.add_argument("daemon",nargs="?",help='Daemon name.num to get stats from (Ex.: osd.0)\
+            Supported daemons: '+str(daemons_available))
     argparser.add_argument("-i","--interval", default='1', action='store',type=float,
         help="Amount of time between reports (default = 1 second)")
     argparser.add_argument("-m","--metric",nargs="+",required=False,
         help="Metrics to parse. -l for more info")
     argparser.add_argument("-l","--list-metrics",action='store_true',required=False,
         help="List available metrics")
+    argparser.add_argument("-d","--list-daemons",action='store_true',required=False,
+        help="List local available(started) daemons")
+    argparser.add_argument("-p","--asok-path",nargs="+",default=asok_path,required=False,
+        help="Set path to admin socket\
+		default: "+asok_path)
     return argparser.parse_args()
 
 
 def get_asok(DAEMON,NUM):
-        import glob
+	global asok_path
         asoks=[]
-        for i in glob.glob('/var/run/ceph/ceph-'+DAEMON+'.'+NUM+'.asok'):
+        for i in glob.glob(asok_path+'/ceph-'+DAEMON+'.'+NUM+'.asok'):
                 asoks.append(i)
         return asoks
 
@@ -50,6 +59,12 @@ def get_avg(param):
 def get_sum(param):
         if 'sum' in json.dumps(param):
                 return param.get('sum')
+
+def list_daemons():
+	global asok_path
+	for i in glob.glob(asok_path+'/ceph-*.*.asok'):
+		print(re.search(r'ceph-(.*).asok',i).group(1))
+        return
 
 def parse_option(option,dump,daemon_num):
 	global schema,actual_vals
@@ -118,19 +133,29 @@ def read_asok(daemon,daemon_num):
 def main():
   args = parse_args()
   global interval,default_vals,daemons_available
- 
+
+
+  if args.list_daemons :
+    list_daemons()
+    return
+
+  if not args.daemon:
+    print("At least -d or <daemon.num> required!")
+    print("-h or --help for help")
+    return
   daemon=args.daemon.rsplit('.')[0]
   if daemon not in daemons_available:
     print("Don't know about "+daemon)
     return -1
+
   daemon_num=args.daemon.rsplit('.')[1]
+  if args.list_metrics :
+    list_metrics(daemon,daemon_num)
+    return
 
   if args.metric :
     default_vals=args.metric
 
-  if args.list_metrics :
-    list_metrics(daemon,daemon_num)
-    return
 
   interval = args.interval
   read_asok(daemon,daemon_num)
