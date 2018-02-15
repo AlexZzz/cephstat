@@ -20,9 +20,13 @@ interval='1.0'
 # values to print
 default_vals=['op_r','op_r_out_bytes','op_w','op_w_in_bytes','op_r_latency','op_w_latency']
 
+# available ceph daemons
+daemons_available=['osd','mon','mgr']
+
 def parse_args():
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("osd_num",help='Osd number')
+    argparser.add_argument("daemon",help='Daemon name.num to get stats from (Ex.: osd.0)\
+            Available daemons: '+str(daemons_available))
     argparser.add_argument("-i","--interval", default='1', action='store',type=float,
         help="Amount of time between reports (default = 1 second)")
     argparser.add_argument("-m","--metric",nargs="+",required=False,
@@ -32,10 +36,10 @@ def parse_args():
     return argparser.parse_args()
 
 
-def get_osd_asok(NUM):
+def get_osd_asok(DAEMON,NUM):
         import glob
         asoks=[]
-        for i in glob.glob('/var/run/ceph/ceph-osd.'+NUM+'.asok'):
+        for i in glob.glob('/var/run/ceph/ceph-'+DAEMON+'.'+NUM+'.asok'):
                 asoks.append(i)
         return asoks
 
@@ -47,7 +51,7 @@ def get_sum(param):
         if 'sum' in json.dumps(param):
                 return param.get('sum')
 
-def parse_option(option,dump,osd_num):
+def parse_option(option,dump,daemon_num):
 	global schema,actual_vals
 	res = json.loads(json.dumps(dump[option]))
         for key,value in res.items():
@@ -79,25 +83,25 @@ def parse_schema(option,dump):
 	global schema
 	schema = json.loads(json.dumps(dump[option]))
 
-def list_metrics(osd_num):
+def list_metrics(daemon,daemon_num):
     global schema
-    for asok in get_osd_asok(osd_num):
+    for asok in get_osd_asok(daemon,daemon_num):
         asok_perf_schema = json.loads(ceph_daemon.admin_socket(asok,['perf','schema'],'format'))
-        parse_schema('osd',asok_perf_schema)
+        parse_schema(daemon,asok_perf_schema)
         for k,v in schema.items():
             print (k)
 		
 
-def read_asok(osd_num):
+def read_asok(daemon,daemon_num):
 	global interval
-	for asok in get_osd_asok(osd_num):
+	for asok in get_osd_asok(daemon,daemon_num):
 		asok_perf_schema = json.loads(ceph_daemon.admin_socket(asok,['perf','schema'],'format'))
-#		osd_num = asok.rsplit('/',1)[1].split('.')[1]
-		parse_schema('osd',asok_perf_schema)
+#		daemon_num = asok.rsplit('/',1)[1].split('.')[1]
+		parse_schema(daemon,asok_perf_schema)
 		line = 0
 		while(1):
         		asok_perf_dump = json.loads(ceph_daemon.admin_socket(asok,['perf','dump'],'format'))
-			parse_option('osd',asok_perf_dump,osd_num)
+			parse_option(daemon,asok_perf_dump,daemon_num)
 			head_string = ""
 			metrics_string = ""
 			for k,v in actual_vals.items():
@@ -113,17 +117,23 @@ def read_asok(osd_num):
 
 def main():
   args = parse_args()
-  global interval,default_vals
+  global interval,default_vals,daemons_available
+ 
+  daemon=args.daemon.rsplit('.')[0]
+  if daemon not in daemons_available:
+    print("Don't know about "+daemon)
+    return -1
+  daemon_num=args.daemon.rsplit('.')[1]
 
   if args.metric :
     default_vals=args.metric
 
   if args.list_metrics :
-    list_metrics(args.osd_num)
+    list_metrics(daemon,daemon_num)
     return
 
   interval = args.interval
-  read_asok(args.osd_num)
+  read_asok(daemon,daemon_num)
 
 if __name__ == "__main__":
   main()
