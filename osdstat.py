@@ -36,7 +36,7 @@ def parse_args():
     return argparser.parse_args()
 
 
-def get_osd_asok(DAEMON,NUM):
+def get_asok(DAEMON,NUM):
         import glob
         asoks=[]
         for i in glob.glob('/var/run/ceph/ceph-'+DAEMON+'.'+NUM+'.asok'):
@@ -85,7 +85,7 @@ def parse_schema(option,dump):
 
 def list_metrics(daemon,daemon_num):
     global schema
-    for asok in get_osd_asok(daemon,daemon_num):
+    for asok in get_asok(daemon,daemon_num):
         asok_perf_schema = json.loads(ceph_daemon.admin_socket(asok,['perf','schema'],'format'))
         parse_schema(daemon,asok_perf_schema)
         for k,v in schema.items():
@@ -94,7 +94,7 @@ def list_metrics(daemon,daemon_num):
 
 def read_asok(daemon,daemon_num):
 	global interval
-	for asok in get_osd_asok(daemon,daemon_num):
+	for asok in get_asok(daemon,daemon_num):
 		asok_perf_schema = json.loads(ceph_daemon.admin_socket(asok,['perf','schema'],'format'))
 #		daemon_num = asok.rsplit('/',1)[1].split('.')[1]
 		parse_schema(daemon,asok_perf_schema)
