@@ -56,7 +56,7 @@ def parse_args():
         help="List available metrics")
     argparser.add_argument("-d","--list-daemons",action='store_true',required=False,
         help="List local available (running) daemons")
-    argparser.add_argument("-p","--asok-path",nargs="+",default=asok_path,required=False,
+    argparser.add_argument("-p","--asok-path",nargs="?",default=asok_path,required=False,
         help="Set path to admin socket\
 		default: "+asok_path)
     return argparser.parse_args()
@@ -66,6 +66,7 @@ def get_asok(DAEMON,NUM):
 	global asok_path
         asoks=[]
         for i in glob.glob(asok_path+'/ceph-'+DAEMON+'.'+NUM+'.asok'):
+            if(i):
                 asoks.append(i)
         return asoks
 
@@ -156,8 +157,11 @@ def read_asok(daemon,daemon_num):
 
 def main():
   args = parse_args()
-  global interval,default_vals,daemons_available
+  global interval,default_vals,daemons_available,asok_path
 
+
+  if args.asok_path :
+    asok_path=args.asok_path
 
   if args.list_daemons :
     list_daemons()
