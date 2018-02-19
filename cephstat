@@ -127,7 +127,8 @@ def parse_option(dump,daemon_num):
 def parse_schema(dump):
 	global schema
 	for k,v in dump.items():
-		schema.update(json.loads(json.dumps(dump[k])))
+		if k != 'objecter':
+		    schema.update(json.loads(json.dumps(dump[k])))
 
 def list_metrics(daemon,daemon_num):
     global schema
