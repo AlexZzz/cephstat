@@ -36,7 +36,7 @@ actual_vals={}
 interval='1.0'
 
 # values to print
-default_vals=['op_r','op_r_out_bytes','op_w','op_w_in_bytes','op_r_latency','op_w_latency']
+default_vals=['op_w','op_r','op_w_in_bytes','op_r_out_bytes','op_w_latency','op_r_latency']
 
 # available ceph daemons
 daemons_available=['osd','mon']
@@ -92,15 +92,18 @@ def parse_option(dump,daemon_num):
 	global schema,actual_vals
 	res={}
 	for k,v in dump.items():
-		res.update(json.loads(json.dumps(dump[k])))
+		# Hmm, ignore objecter, cause of similar to osd metric names
+		if k != 'objecter':
+			res.update(json.loads(json.dumps(dump[k])))
         for key,value in res.items():
 		key_schema = json.dumps(schema[key])
 		key_type = json.dumps(json.loads(key_schema)["type"])
                 # type = 10 - bytes-based metric
 		if key_type == "10":
 			if key in previous_counters.keys():
-				actual_vals[key] = value - previous_counters[key]
-			previous_counters[key] = value
+				actual_vals[key] = (value & 0xffffffffffffffff -\
+						 previous_counters[key] & 0xffffffffffffffff)
+			previous_counters[key] = value & 0xffffffffffffffff
 			continue
                 # type = 5 - latency metric
 		if key_type == "5":
