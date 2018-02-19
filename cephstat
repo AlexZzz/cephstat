@@ -88,7 +88,7 @@ def list_daemons():
                 print (d)
         return
 
-def parse_option(option,dump,daemon_num):
+def parse_option(dump,daemon_num):
 	global schema,actual_vals
 #	res = json.loads(json.dumps(dump[option]))
 	res={}
@@ -145,7 +145,7 @@ def read_asok(daemon,daemon_num):
 		line = 0
 		while(1):
         		asok_perf_dump = json.loads(ceph_daemon.admin_socket(asok,['perf','dump'],'format'))
-			parse_option(daemon,asok_perf_dump,daemon_num)
+			parse_option(asok_perf_dump,daemon_num)
 			head_string = ""
 			metrics_string = ""
 			for k,v in actual_vals.items():
