@@ -150,12 +150,14 @@ def read_asok(daemon,daemon_num):
 			parse_option(asok_perf_dump,daemon_num)
 			head_string = ""
 			metrics_string = ""
+			offsets={}
 			for k in default_vals:
 				if k in actual_vals.keys():
-					if (line == 1 or line % 10 == 0):
-						head_string += k + '\t'
-					metrics_string += str(actual_vals.get(k)) + '\t'
-			if head_string != "":
+					head_string += k + '\t'
+					offsets[k] = len(k)
+					value = str(actual_vals.get(k))
+					metrics_string += value + ' ' * (offsets[k]-len(value)) + '\t'
+			if (line == 1 or line % 10 == 0):
 				print ("\n"+head_string)
 			print (metrics_string)
 			line+=1
