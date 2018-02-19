@@ -27,7 +27,7 @@ import argparse
 import glob,re
 
 # perf dump schema
-schema=""
+schema={}
 # saved counters to calc diff
 previous_counters={}
 # values to print
@@ -90,7 +90,10 @@ def list_daemons():
 
 def parse_option(option,dump,daemon_num):
 	global schema,actual_vals
-	res = json.loads(json.dumps(dump[option]))
+#	res = json.loads(json.dumps(dump[option]))
+	res={}
+	for k,v in dump.items():
+		res.update(json.loads(json.dumps(dump[k])))
         for key,value in res.items():
 		key_schema = json.dumps(schema[key])
 		key_type = json.dumps(json.loads(key_schema)["type"])
@@ -119,15 +122,16 @@ def parse_option(option,dump,daemon_num):
 			actual_vals[key] = value
 				
 	
-def parse_schema(option,dump):
+def parse_schema(dump):
 	global schema
-	schema = json.loads(json.dumps(dump[option]))
+	for k,v in dump.items():
+		schema.update(json.loads(json.dumps(dump[k])))
 
 def list_metrics(daemon,daemon_num):
     global schema
     for asok in get_asok(daemon,daemon_num):
         asok_perf_schema = json.loads(ceph_daemon.admin_socket(asok,['perf','schema'],'format'))
-        parse_schema(daemon,asok_perf_schema)
+        parse_schema(asok_perf_schema)
         for k,v in schema.items():
             print (k)
 		
@@ -137,7 +141,7 @@ def read_asok(daemon,daemon_num):
 	for asok in get_asok(daemon,daemon_num):
 		asok_perf_schema = json.loads(ceph_daemon.admin_socket(asok,['perf','schema'],'format'))
 #		daemon_num = asok.rsplit('/',1)[1].split('.')[1]
-		parse_schema(daemon,asok_perf_schema)
+		parse_schema(asok_perf_schema)
 		line = 0
 		while(1):
         		asok_perf_dump = json.loads(ceph_daemon.admin_socket(asok,['perf','dump'],'format'))
