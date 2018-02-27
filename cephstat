@@ -25,6 +25,7 @@ from os import listdir
 from time import sleep
 import argparse
 import glob,re
+import sys,signal
 
 # perf dump schema
 schema={}
@@ -43,6 +44,9 @@ daemons_available=['osd','mon']
 
 # path to admin sockets
 asok_path='/var/run/ceph'
+
+def signal_handler(signal, frame):
+        sys.exit(0)
 
 def parse_args():
     argparser = argparse.ArgumentParser()
@@ -164,6 +168,7 @@ def read_asok(daemon,daemon_num):
 			sleep(interval)
 
 def main():
+  signal.signal(signal.SIGINT, signal_handler)
   args = parse_args()
   global interval,default_vals,daemons_available,asok_path
 
