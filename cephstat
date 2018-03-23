@@ -27,6 +27,9 @@ import argparse
 import glob,re
 import sys,signal
 
+# current version
+version=1.0
+
 # perf dump schema
 schema={}
 # saved counters to calc diff
@@ -63,6 +66,8 @@ def parse_args():
     argparser.add_argument("-p","--asok-path",nargs="?",default=asok_path,required=False,
         help="Set path to admin socket\
 		default: "+asok_path)
+    argparser.add_argument("-v","--version",action='store_true',required=False,
+        help="Show version")
     return argparser.parse_args()
 
 
@@ -175,6 +180,10 @@ def main():
 
   if args.asok_path :
     asok_path=args.asok_path
+
+  if args.version :
+    print(version)
+    return
 
   if args.list_daemons :
     list_daemons()
