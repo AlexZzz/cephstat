@@ -4,7 +4,8 @@ report statistics for ceph daemons
 ## Howto
 
 #### Show local available daemons:
-```~# cephstat -d
+```
+~# cephstat -d
 osd.64
 osd.75
 osd.74
